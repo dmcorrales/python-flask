@@ -28,7 +28,12 @@ def add_students():
             student_record.points = student['points']
             student_record.save()         
 
+
+def top_students():
+    student = Student.select().order_by(Student.points.desc()).get()
+    return student
+
 if __name__ == "__main__":
     db.connect()
     db.create_tables([Student], safe=True)
-    add_students()
+    print(top_students().username)
