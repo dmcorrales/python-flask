@@ -30,12 +30,21 @@ def view_entries(filter_entry=None):
         entries = Entry.select().where(Entry.content.contains(filter_entry))
     else:    
         entries = Entry.select().order_by(Entry.timestamp.desc())
-
+    
     for entry in entries:
         print(entry.timestamp , entry.content)
 
-def delete_entry():
-    """"""
+        option = input("Presione 'd' para eliminar y 'n' ir al siguiente")
+        if(option == 'd'):
+            print("Eliminando..")
+            delete_entry(entry)
+        elif(option == 'n'):
+            next
+        else:
+            exit
+
+def delete_entry(element):
+    Entry.delete_instance(element)
 
 def search_entries():
     view_entries(input('Selecciona un filtro'))
@@ -43,7 +52,8 @@ def search_entries():
 menu = OrderedDict([
     ('a', add_entry),
     ('v', view_entries),
-    ('s', search_entries)
+    ('s', search_entries),
+    ('d', delete_entry)
 ])
 
 def menu_loop():
