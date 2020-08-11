@@ -40,9 +40,10 @@ def register():
         models.User.create_user(
             username = form.username.data,
             email = form.email.data,
-            password = form.password.date
+            password = form.password.data
         )
         return redirect(url_for(''))
+    return render_template('register.html', form=form)
 
 @app.route('/')
 def index():
@@ -50,10 +51,6 @@ def index():
 
 if __name__ == "__main__":
     models.initialize()
-    models.User.create_user(
-        username = 'asstag',
-        email = 'dmcorrales@hotmail.com',
-        password = ' calabaza',
-    )
+
     app.run(debug=DEBUG, host=HOST, port=PORT)
 

@@ -1,6 +1,6 @@
 {% from 'macros.html' import render_field %}
 <form action="" method="post" class="form">
-    {{form.hidden_tag}}
+    {{form.hidden_tag()}}
     {% for field in form %}
        {{ render_field(field) }}
     {% endfor %}
