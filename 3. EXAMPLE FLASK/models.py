@@ -20,16 +20,34 @@ class User(UserMixin, Model):
 
     def get_stream(self):
         return Post.select().where(Post.user == self)
-   
+
+    def following(self):
+        return(
+            User.select().join(
+                Relationship, on=Relationship.to_user
+            ).where(
+                Relationship.from_user == self   
+            )
+        )
+
+    def followers(self):
+        return(
+            User.select().join(
+                Relationship, on=Relationship.from_user
+            ).where(
+                Relationship.to_user == self   
+            )
+        )  
 
     @classmethod
     def create_user(self, username, email, password):
-        try:    
-            self.create(
-                username = username,
-                email = email,
-                password = generate_password_hash(password)
-            )
+        try:
+            with db.transaction():    
+                self.create(
+                    username = username,
+                    email = email,
+                    password = generate_password_hash(password)
+                )
         except:
             raise ValueError('User already exists')
 
@@ -45,6 +63,16 @@ class Post(Model):
         database = db
         order_by = ('-joined_at',)
 
+
+class Relationship(Model):
+    from_user = ForeignKeyField(User, related_name='relationships')
+    to_user = ForeignKeyField(User, related_name='related_to')
+
+    class Meta:
+        database = db
+        indexes = (
+            (('form_user', 'to_user'), True)
+        )
 
 def initialize():
     db.connect()
