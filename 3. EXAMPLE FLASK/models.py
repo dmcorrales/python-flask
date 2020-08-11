@@ -26,3 +26,8 @@ class User(UserMixin, Model):
             )
         except:
             raise ValueError('User already exists')
+
+def initialize():
+    db.connect()
+    db.create_tables([User], safe=True)
+    db.close()
