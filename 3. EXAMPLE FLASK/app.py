@@ -12,9 +12,9 @@ app.secret_key =  '56d4asdw98q4dqwdcw8rer8h9hgj8khjk871;.432$"#&%$/(/)/&%$ER'
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view
+login_manager.login_view = 'login'
 
-@login_manager
+@login_manager.user_loader
 def load_user(userid):
     try:
         return models.User.get(models.User.id == userid)
