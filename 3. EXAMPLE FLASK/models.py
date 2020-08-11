@@ -18,6 +18,10 @@ class User(UserMixin, Model):
     def get_posts(self):
         return Post.select().where(Post.user == self)
 
+    def get_stream(self):
+        return Post.select().where(Post.user == self)
+   
+
     @classmethod
     def create_user(self, username, email, password):
         try:    
@@ -44,5 +48,5 @@ class Post(Model):
 
 def initialize():
     db.connect()
-    db.create_tables([User], safe=True)
+    db.create_tables([User, Post], safe=True)
     db.close()

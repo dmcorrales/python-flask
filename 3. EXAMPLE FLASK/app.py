@@ -67,7 +67,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('/'))
+    return redirect(url_for('index'))
 
 
 @app.route('/new_post', methods=('GET', 'POST'))
@@ -82,10 +82,26 @@ def post():
 
 @app.route('/')
 def index():
-    return "hola"
+    stream = models.Post.select().limit(100)
+    return render_template("stream.html", stream=stream)
+
+@app.route('/stream')
+@app.route('/stream/<username>')
+def stream(username=None):
+    template = 'stream.html'
+    if username and username != current_user.username:
+        user = models.User.select().where(models.User.username**username).get()
+        stream = user.post.limit(100)
+    else:
+        stream = current_user.get_stream().limit(100)
+        user = current_user
+
+    if username:
+        template = 'user_stream.html'
+    
+    return render_template(template, stream=stream, user=user)
 
 if __name__ == "__main__":
     models.initialize()
-
     app.run(debug=DEBUG, host=HOST, port=PORT)
 
