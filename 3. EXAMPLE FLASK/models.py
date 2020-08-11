@@ -19,7 +19,10 @@ class User(UserMixin, Model):
         return Post.select().where(Post.user == self)
 
     def get_stream(self):
-        return Post.select().where(Post.user == self)
+        return Post.select().where(
+            (Post.user << self.following()) |
+            (Post.user == self)
+        )
 
     def following(self):
         return(

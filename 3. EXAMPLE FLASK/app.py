@@ -1,5 +1,5 @@
-from flask import (Flask, g, render_template, flash, url_for, redirect)
-from flask_login import LoginManager, login_user, login_required, current_user,logout_user
+from flask import (Flask, g, render_template, flash, url_for, redirect, abort)
+from flask_login import LoginManager, login_user, login_required, current_user,logout_user, AnonymousUserMixin
 from flask_bcrypt import check_password_hash
 import models
 import forms
@@ -14,6 +14,13 @@ app.secret_key =  '56d4asdw98q4dqwdcw8rer8h9hgj8khjk871;.432$"#&%$/(/)/&%$ER'
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+class Anonymous(AnonymousUserMixin):
+    def __init__(self):
+        self.username = 'Invitado'
+
+login_manager.anonymous_user = Anonymous
+
 
 @login_manager.user_loader
 def load_user(userid):
@@ -91,7 +98,7 @@ def follow(username):
     try:
         to_user = models.User.get(models.User.username**username)
     except:
-        pass   
+        abort(404)  
     else:
         try:
             models.Relationship.create(
@@ -99,7 +106,7 @@ def follow(username):
                 to_user=to_user
             )
         except models.IntegrityError:
-            pass
+            abort(404) 
         else:
             flash('Ahora sigues a {}'.format(to_user.username),'success')
     return redirect(url_for('stream', username=to_user.username))
@@ -110,7 +117,7 @@ def unfollow(username):
     try:
         to_user = models.User.get(models.User.username**username)
     except:
-        pass   
+        abort(404)   
     else:
         try:
             models.Relationship.get(
@@ -118,7 +125,7 @@ def unfollow(username):
                 to_user=to_user
             ).delete_instance()
         except models.IntegrityError:
-            pass
+            abort(404) 
         else:
             flash('Ahora eliminaste a {}'.format(to_user.username),'success')
     return redirect(url_for('stream', username=to_user.username))
@@ -128,8 +135,12 @@ def unfollow(username):
 def stream(username=None):
     template = 'stream.html'
     if username and username != current_user.username:
-        user = models.User.select().where(models.User.username**username).get()
-        stream = user.post.limit(100)
+        try:
+            user = models.User.select().where(models.User.username**username).get()
+        except models.DoesNotExist:
+            abort(404)
+        else:
+            stream = user.post.limit(100)
     else:
         stream = current_user.get_stream().limit(100)
         user = current_user
@@ -138,6 +149,19 @@ def stream(username=None):
         template = 'user_stream.html'
     
     return render_template(template, stream=stream, user=user)
+
+
+@app.route('/post/<int:post_id>')
+@login_required
+def view_post(post_id):
+    post = models.Post.select().where(models.Post.id == post_id)
+    if post.count() == 0:
+        abort(404)
+    return render_template("stream.html", stream=post)
+
+@app.errorhandler(404)
+def not_found(error):
+    return  render_template("404.html")
 
 if __name__ == "__main__":
     models.initialize()
