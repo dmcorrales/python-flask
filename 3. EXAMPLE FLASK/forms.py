@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms.validators import ( DataRequired, ValidationError, Email, Regexp, Length, EqualTo )
 from models import User
-from wtforms import StringField, PasswordField, TextField
+from wtforms import StringField, PasswordField, TextField, TextAreaField
 def name_exists(form, field):
     if User.select().where(User.username == field.data).exists():
         raise ValidationError('Ya existe un usuario con ese nombre')
@@ -60,5 +60,13 @@ class LoginForm(FlaskForm):
         validators=[
             DataRequired(),
             Length(min=8,max=233),
+        ]
+    )
+
+class PostForm(FlaskForm):
+    content = TextAreaField(
+        '¿Qué piensas?',
+        validators=[
+            DataRequired(),
         ]
     )

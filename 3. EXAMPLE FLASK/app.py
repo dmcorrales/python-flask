@@ -1,5 +1,5 @@
 from flask import (Flask, g, render_template, flash, url_for, redirect)
-from flask_login import LoginManager, login_user
+from flask_login import LoginManager, login_user, login_required, current_user,logout_user
 from flask_bcrypt import check_password_hash
 import models
 import forms
@@ -27,6 +27,7 @@ def before_request():
     g.db = models.db
     if g.db.is_closed():
         g.db.connect()
+        g.user = current_user
 
 @app.after_request
 def after_request(response):
@@ -59,8 +60,25 @@ def login():
                 login_user(user)
                 flash('Haz iniciado sesión correctamente', 'success')
                 return redirect(url_for('index'))
-        return redirect(url_for('/login'))
+        return redirect(url_for('login'))
     return render_template('login.html', form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('/'))
+
+
+@app.route('/new_post', methods=('GET', 'POST'))
+def post():
+    form = forms.PostForm()
+    if form.validate_on_submit():
+        models.Post.create(user=g.user._get_current_object(),content = form.content.data.strip())
+        flash("Mensaje posteado","success")
+        return redirect(url_for('index'))
+    return render_template('post.html', form=form)
+
 
 @app.route('/')
 def index():

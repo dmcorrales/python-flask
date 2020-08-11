@@ -3,7 +3,6 @@ from peewee import *
 from flask_login import UserMixin
 from flask_bcrypt import generate_password_hash
 
-
 db = SqliteDatabase("database.sql")
 
 class User(UserMixin, Model):
@@ -14,7 +13,10 @@ class User(UserMixin, Model):
 
     class Meta:
         database = db
-        order_by = ('-joined_at')
+        order_by = ('-joined_at',)
+
+    def get_posts(self):
+        return Post.select().where(Post.user == self)
 
     @classmethod
     def create_user(self, username, email, password):
@@ -26,6 +28,19 @@ class User(UserMixin, Model):
             )
         except:
             raise ValueError('User already exists')
+
+class Post(Model):
+    
+    user = ForeignKeyField(
+        User,
+        related_name='posts',
+    )
+    timestamp = DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        database = db
+        order_by = ('-joined_at',)
+
 
 def initialize():
     db.connect()
