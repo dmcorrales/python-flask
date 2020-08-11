@@ -45,3 +45,20 @@ class RegisterForm(FlaskForm):
             DataRequired(),
         ]
     )
+
+
+class LoginForm(FlaskForm):
+    email = StringField(
+        'Email',
+        validators=[
+            DataRequired(),
+        ]
+    )
+
+    password = PasswordField(
+        'Password',
+        validators=[
+            DataRequired(),
+            Length(min=8,max=233),
+        ]
+    )

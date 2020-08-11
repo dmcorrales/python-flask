@@ -1,5 +1,6 @@
 from flask import (Flask, g, render_template, flash, url_for, redirect)
-from flask_login import LoginManager
+from flask_login import LoginManager, login_user
+from flask_bcrypt import check_password_hash
 import models
 import forms
 
@@ -23,8 +24,8 @@ def load_user(userid):
 
 @app.before_request
 def before_request():
-    if not hasattr(g, 'db'):
-        g.db = models.db
+    g.db = models.db
+    if g.db.is_closed():
         g.db.connect()
 
 @app.after_request
@@ -42,12 +43,28 @@ def register():
             email = form.email.data,
             password = form.password.data
         )
-        return redirect(url_for(''))
+        return redirect(url_for('/'))
     return render_template('register.html', form=form)
+
+@app.route('/login', methods=('GET', 'POST'))
+def login():
+    form = forms.LoginForm()
+    if form.validate_on_submit():
+        try:
+            user = models.User.get(models.User.email == form.email.data)
+        except models.DoesNotExist:
+            flash("Vaya! parece que no coincide", "error")
+        else:
+            if check_password_hash(user.password, form.password.data):
+                login_user(user)
+                flash('Haz iniciado sesión correctamente', 'success')
+                return redirect(url_for('index'))
+        return redirect(url_for('/login'))
+    return render_template('login.html', form=form)
 
 @app.route('/')
 def index():
-    return 'hey'
+    return "hola"
 
 if __name__ == "__main__":
     models.initialize()
