@@ -58,6 +58,7 @@ class Post(Model):
         related_name='posts',
     )
     timestamp = DateTimeField(default=datetime.datetime.now)
+    content = TextField()
 
     class Meta:
         database = db
@@ -71,10 +72,11 @@ class Relationship(Model):
     class Meta:
         database = db
         indexes = (
-            (('form_user', 'to_user'), True)
+            (('from_user', 'to_user'), True),
         )
+
 
 def initialize():
     db.connect()
-    db.create_tables([User, Post], safe=True)
+    db.create_tables([User, Relationship,Post], safe=True)
     db.close()
